@@ -1,4 +1,6 @@
-package com.github.macg20.walletspy.expense;
+package com.github.macg20.walletspy.expense.domain;
+
+import com.github.macg20.walletspy.expense.dto.ExpenseDto;
 
 public class ExpenseFacade {
 

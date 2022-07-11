@@ -1,4 +1,4 @@
-package com.github.macg20.walletspy.expense;
+package com.github.macg20.walletspy.expense.domain;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;

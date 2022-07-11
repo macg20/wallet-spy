@@ -1,4 +1,4 @@
-package com.github.macg20.walletspy.expense;
+package com.github.macg20.walletspy.expense.domain;
 
 import java.util.Optional;
 
