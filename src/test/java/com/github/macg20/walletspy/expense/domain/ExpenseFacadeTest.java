@@ -1,39 +1,25 @@
 package com.github.macg20.walletspy.expense.domain;
 
-import com.github.macg20.walletspy.expense.domain.ExpenseDocument;
-import com.github.macg20.walletspy.expense.domain.ExpenseFacade;
-import com.github.macg20.walletspy.expense.domain.ExpenseRepository;
 import com.github.macg20.walletspy.expense.dto.ExpenseDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.math.BigDecimal;
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ExpenseFacadeTest {
 
     private ExpenseFacade facade;
+    private InMemoryExpenseRepository inMemoryExpenseRepository;
 
     @BeforeAll
     void beforeAll() {
-        facade = new ExpenseFacade(new ExpenseRepository() {
-            @Override
-            public ExpenseDocument save(ExpenseDocument document) {
-                ExpenseDocument savedDocument = new ExpenseDocument(document.getCategory(), document.getCost(), null);
-                savedDocument.setId(UUID.randomUUID().toString());
-                return savedDocument;
-            }
-
-            @Override
-            public Optional<ExpenseDocument> findById(String id) {
-                return Optional.empty();
-            }
-        });
+        inMemoryExpenseRepository = new InMemoryExpenseRepository();
+        facade = new ExpenseFacade(inMemoryExpenseRepository);
     }
 
     @Test
@@ -47,8 +33,38 @@ class ExpenseFacadeTest {
         assertThat(result)
                 .isNotNull();
 
-        assertThat(result.category()).isNotNull().isNotBlank();
         assertThat(result.id()).isNotNull().isNotBlank();
+        assertThat(result.category()).isNotNull().isNotBlank();
         assertThat(result.cost()).isNotNull().isGreaterThan(BigDecimal.ZERO);
+    }
+
+    @Test
+    void should_remove_expense_by_id() {
+        // given
+        var dto = new ExpenseDto(null, "toDelete", BigDecimal.ONE);
+
+        //when
+        var savedExpense = facade.save(dto);
+        facade.delete(savedExpense.id());
+        var result = inMemoryExpenseRepository.findById(savedExpense.id());
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void should_update_category_when_task_exists() {
+        var dto = new ExpenseDto(null, "INSURANCE", BigDecimal.ONE);
+
+        //when
+        var savedExpense = facade.save(dto);
+        var updatedCategoryDto = new ExpenseDto(savedExpense.id(), "SHOPPING", savedExpense.cost());
+
+        var updatedResult = facade.save(updatedCategoryDto);
+
+        assertThat(updatedResult.id()).isNotNull().isNotBlank()
+                .isEqualTo(savedExpense.id());
+
+        assertThat(updatedResult.category()).isNotNull().isNotBlank().isEqualTo("SHOPPING");
+        assertThat(updatedResult.cost()).isNotNull().isEqualTo(savedExpense.cost());
     }
 }

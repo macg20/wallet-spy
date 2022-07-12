@@ -10,11 +10,22 @@ public class ExpenseFacade {
         this.expenseRepository = expenseRepository;
     }
 
-    ExpenseDto save(ExpenseDto toSave) {
+    public ExpenseDto save(ExpenseDto toSave) {
         ExpenseDocument document = expenseRepository.save(
                 expenseRepository.findById(toSave.id())
-                        .orElseGet(() -> new ExpenseDocument(toSave.category(), toSave.cost(), null))
-        );
+                        .map(toUpdate -> {
+                            toUpdate.setCategory(toSave.category());
+                            toUpdate.setCost(toSave.cost());
+                            return toUpdate;
+                        })
+                        .orElseGet(
+                                () -> new ExpenseDocument(toSave.category(), toSave.cost(), null)));
+
         return new ExpenseDto(document.getId(), document.getCategory(), document.getCost());
+    }
+
+    public void delete(String id) {
+        expenseRepository.findById(id)
+                .ifPresent(expense -> expenseRepository.delete(id));
     }
 }

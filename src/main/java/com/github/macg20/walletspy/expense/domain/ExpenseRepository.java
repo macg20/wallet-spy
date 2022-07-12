@@ -7,4 +7,6 @@ interface ExpenseRepository {
     ExpenseDocument save(ExpenseDocument document);
 
     Optional<ExpenseDocument> findById(String id);
+
+    void delete(String id);
 }
